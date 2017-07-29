@@ -1,5 +1,5 @@
 {
-  "name": "active-timeout",
+  "name": "active-timeout.js",
   "version": "1.0.0",
   "description": "JavaScript timeout that counts only while the user is viewing the page.",
   "main": "index.js",
