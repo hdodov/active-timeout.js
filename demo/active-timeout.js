@@ -23,29 +23,81 @@ window.activeTimeout = (function () {
         };
     })();
 
-    // Perform an interval until a predicate callback returns false.
-    function pulseInterval(callback, lastCall) {
-        var now = (Date.now) ? Date.now() : (new Date()).getTime(),
-            tick = 0;
-
-        if (lastCall && (!_visibility || !document[_visibility.hidden])) {
-            tick = (now - lastCall);
-        }
-
-        if (callback(tick) !== false) {
-            var call = function () {
-                pulseInterval(callback, now);
-            };
-
-            if (typeof requestAnimationFrame !== "undefined") {
-                requestAnimationFrame(call);
-            } else {
-                setTimeout(call, (1000 / 60));
-            }
+    var _pulseDelay = (1000 / 60);
+    function _delay(callback) {
+        if (typeof requestAnimationFrame !== "undefined") {
+            requestAnimationFrame(callback);
+        } else {
+            setTimeout(callback, _pulseDelay);
         }
     }
 
+    // Perform an interval until a predicate callback returns false.
+    function pulse(callback) {
+        var ignoreNextTick = false;
+        var visibilityCallback = null;
+
+        if (_visibility !== null) {
+            visibilityCallback = function (e) {
+                if (document[_visibility.hidden]) {
+                    ignoreNextTick = true;
+                }
+            };
+
+            document.addEventListener(
+                _visibility.event,
+                visibilityCallback
+            );
+        }
+
+        (function measure(last) {
+            var proceed = false, now = Date.now();
+
+            // If the browser was out of focus, the next tick should be
+            // ignored, otherwise the inactive time would be added and this
+            // whole charade would be meaningless.
+            if (ignoreNextTick) {
+                ignoreNextTick = false;
+                proceed = true;
+            } else {
+                if (_visibility && document[_visibility.hidden]) {
+                    // Page is hidden, continue to pulse and wait for focus.
+                    proceed = true;
+                } else {
+                    if (!last) {
+                        // First iteration of the recursion, continue and wait
+                        // for some time to pass.
+                        proceed = true;
+                    } else {
+                        // Finally, the predicate decides whether to continue.
+                        proceed = callback(now - last);
+                    }
+                }
+            }
+
+            if (proceed === true) {
+                _delay(function () {
+                    measure(now);
+                });
+            } else if (visibilityCallback) {
+                document.removeEventListener(
+                    _visibility.event,
+                    visibilityCallback
+                );
+            }
+        })();   
+    }
+
+    var t = 0;
+    pulse(function (tick) {
+        t += tick;
+        console.log(t);
+        return true;
+    });
+
     function activeTimeout(completeCallback, tickCallback, time) {
+        return;
+
         var ignoreNextTick = false;
         var visibilityCallback = null;
 
