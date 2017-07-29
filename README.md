@@ -14,7 +14,7 @@ git clone https://github.com/hdodov/active-timeout.js
 ```
 
 # Usage
-```
+```js
 activeTimeout(function () {
     // On complete.
 }, function (remainingTime, tick) {
@@ -22,7 +22,7 @@ activeTimeout(function () {
 }, 2000);
 ```
 or
-```
+```js
 activeTimeout(function () {
     // On complete.
 }, 2000);
