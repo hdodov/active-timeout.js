@@ -1,0 +1,31 @@
+{
+  "name": "active-timeout",
+  "version": "1.0.0",
+  "description": "JavaScript timeout that counts only while the user is viewing the page.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hdodov/active-timeout.js.git"
+  },
+  "keywords": [
+    "javascript",
+    "active",
+    "timeout",
+    "settimeout",
+    "setinterval",
+    "visibility",
+    "wait",
+    "delay",
+    "viewing",
+    "view"
+  ],
+  "author": "Hristiyan Dodov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hdodov/active-timeout.js/issues"
+  },
+  "homepage": "https://github.com/hdodov/active-timeout.js#readme"
+}
