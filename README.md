@@ -14,6 +14,11 @@ git clone https://github.com/hdodov/active-timeout.js
 ```
 
 # Usage
+Make sure to include the script somewhere in your page:
+```html
+<script type="text/javascript" src="active-timeout.min.js"></script>
+```
+And then use:
 ```js
 activeTimeout(function () {
     // On complete.
