@@ -1,7 +1,8 @@
 window.ActiveTimeout = (function () {
 
-    // Gets the Visibility API properties. If the browser doesn't support that, this
-    // library would basically be useless, except for the fancy way of handling time.
+    // Gets the Visibility API properties. If the browser doesn't support
+    // that, this library would basically be useless, except for the fancy way
+    // of handling time.
     var _visibility = (function () {
         var p, e;
 
@@ -28,6 +29,11 @@ window.ActiveTimeout = (function () {
         return (_visibility && document[_visibility.hidden]);
     }
 
+    /**
+     * Invokes a function after a ~17ms interval. Uses `requestAnimationFrame`
+     * if supported to ease the load on the browser.
+     * @param  {function} callback Function to execute.
+     */
     function _delay(callback) {
         if (typeof requestAnimationFrame !== "undefined") {
             requestAnimationFrame(callback);
@@ -52,8 +58,11 @@ window.ActiveTimeout = (function () {
         });
     }
 
-    // Measure ~60 intervals per second and ignore ones where the user was
-    // inactive. Repeat until the predicate returns a falsy value.
+    /**
+     * Measure ~60 intervals per second and ignore ones where the user was
+     * inactive. Repeat until the predicate returns a falsy value.
+     * @param  {function} predicate Stops pulsing when it returns a falsy value.
+     */
     function pulse(predicate) {
         var ignoreTicks = 0;
         var listener = function () {
@@ -97,7 +106,10 @@ window.ActiveTimeout = (function () {
         })();
     }
 
-    // Count *active* passed time until a predicate returns a falsy value.
+    /**
+     * Count *active* passed time until a predicate returns a falsy value.
+     * @param  {function} predicate Stops the counter when it returns a falsy value.
+     */
     function count(predicate) {
         var time = 0;
 
@@ -107,8 +119,15 @@ window.ActiveTimeout = (function () {
         });
     }
 
-    // Invoke a function after the user has spent a set amount of *active*
-    // time on the page. Optionally provide a callback for each tick.
+    /**
+     * Invoke a function after the user has spent a set amount of *active* time
+     * on the page. Optionally provide a callback for each tick.
+     * @param  {function} completeCallback Function to call when the timeout
+     *                                     completes.
+     * @param  {function} tickCallback     Optional function to call upon each
+     *                                     timer tick.
+     * @param  {number}   time             How much milliseconds to wait.
+     */
     function timeout(completeCallback, tickCallback, time) {
         if (typeof tickCallback === "number") {
             time = tickCallback;
