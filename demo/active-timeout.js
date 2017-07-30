@@ -1,66 +1,78 @@
-window.activeTimeout = (function () {
+window.ActiveTimeout = (function () {
 
-    // Get Visibility API properties.
+    // Gets the Visibility API properties. If the browser doesn't support that, this
+    // library would basically be useless, except for the fancy way of handling time.
     var _visibility = (function () {
-        var prop, evnt;
+        var p, e;
 
         if ("hidden" in document) {
-            prop = "hidden";
-            evnt = "visibilitychange";
+            p = "hidden";
+            e = "visibilitychange";
         } else if ("msHidden" in document) {
-            prop = "msHidden";
-            evnt = "msvisibilitychange";
+            p = "msHidden";
+            e = "msvisibilitychange";
         } else if ("webkitHidden" in document) {
-            prop = "webkitHidden";
-            evnt = "webkitvisibilitychange";
+            p = "webkitHidden";
+            e = "webkitvisibilitychange";
         } else {
             return null;
         }
 
         return {
-            hidden: prop,
-            event: evnt
+            hidden: p,
+            event: e
         };
     })();
 
-    var _pulseDelay = (1000 / 60);
+    function _isPageHidden() {
+        return (_visibility && document[_visibility.hidden]);
+    }
+
     function _delay(callback) {
         if (typeof requestAnimationFrame !== "undefined") {
             requestAnimationFrame(callback);
         } else {
-            setTimeout(callback, _pulseDelay);
+            setTimeout(callback, (1000 / 60));
         }
     }
 
-    // Perform an interval until a predicate callback returns false.
-    function pulse(callback) {
-        var ignoreNextTick = false;
-        var visibilityCallback = null;
+    var _listeners = [];
 
-        if (_visibility !== null) {
-            visibilityCallback = function (e) {
-                if (document[_visibility.hidden]) {
-                    ignoreNextTick = true;
+    if (_visibility) {
+        document.addEventListener(_visibility.event, function () {
+            if (!_isPageHidden()) {
+                // The page is not hidden, but a change occured. That means
+                // is *was* previously hidden, so the timers receive an event
+                // that tells them to ignore the next tick since it would
+                // contain the inactive time.
+                for (var i = _listeners.length - 1; i >= 0; i--) {
+                    _listeners[i]();
                 }
-            };
+            }
+        });
+    }
 
-            document.addEventListener(
-                _visibility.event,
-                visibilityCallback
-            );
+    // Measure ~60 intervals per second and ignore ones where the user was
+    // inactive. Repeat until the predicate returns a falsy value.
+    function pulse(predicate) {
+        var ignoreTicks = 0;
+        var listener = function () {
+            ignoreTicks += 1;
         }
+        
+        _listeners.push(listener);
 
         (function measure(last) {
             var proceed = false, now = Date.now();
 
-            // If the browser was out of focus, the next tick should be
+            // Whenever the page loses focus, the next tick should be
             // ignored, otherwise the inactive time would be added and this
             // whole charade would be meaningless.
-            if (ignoreNextTick) {
-                ignoreNextTick = false;
+            if (ignoreTicks > 0) {
+                ignoreTicks -= 1;
                 proceed = true;
             } else {
-                if (_visibility && document[_visibility.hidden]) {
+                if (_isPageHidden()) {
                     // Page is hidden, continue to pulse and wait for focus.
                     proceed = true;
                 } else {
@@ -70,7 +82,7 @@ window.activeTimeout = (function () {
                         proceed = true;
                     } else {
                         // Finally, the predicate decides whether to continue.
-                        proceed = callback(now - last);
+                        proceed = predicate(now - last);
                     }
                 }
             }
@@ -79,66 +91,36 @@ window.activeTimeout = (function () {
                 _delay(function () {
                     measure(now);
                 });
-            } else if (visibilityCallback) {
-                document.removeEventListener(
-                    _visibility.event,
-                    visibilityCallback
-                );
+            } else {
+                _listeners.splice(_listeners.indexOf(listener), 1);
             }
-        })();   
+        })();
     }
 
-    var t = 0;
-    pulse(function (tick) {
-        t += tick;
-        console.log(t);
-        return true;
-    });
+    // Count *active* passed time until a predicate returns a falsy value.
+    function count(predicate) {
+        var time = 0;
 
-    function activeTimeout(completeCallback, tickCallback, time) {
-        return;
+        pulse(function (tick) {
+            time += tick;
+            return predicate(time, tick);
+        });
+    }
 
-        var ignoreNextTick = false;
-        var visibilityCallback = null;
-
+    // Invoke a function after the user has spent a set amount of *active*
+    // time on the page. Optionally provide a callback for each tick.
+    function timeout(completeCallback, tickCallback, time) {
         if (typeof tickCallback === "number") {
             time = tickCallback;
             tickCallback = null;
         }
 
-        if (_visibility !== null) {
-            visibilityCallback = function (e) {
-                if (document[_visibility.hidden]) {
-                    ignoreNextTick = true;
-                }
-            };
-
-            document.addEventListener(
-                _visibility.event,
-                visibilityCallback
-            );
-        }
-
-        pulseInterval(function (tick) {
-            if (ignoreNextTick === true) {
-                ignoreNextTick = false;
-                return true;
-            }
-
-            time -= tick;
-
+        count(function (passed, tick) {
             if (typeof tickCallback === "function") {
-                tickCallback(time, tick);
+                tickCallback(time - passed, tick);
             }
 
-            if (time <= 0) {
-                if (visibilityCallback) {
-                    document.removeEventListener(
-                        _visibility.event,
-                        visibilityCallback
-                    );
-                }
-
+            if (passed >= time) {
                 completeCallback();
                 return false;
             } else {
@@ -147,5 +129,9 @@ window.activeTimeout = (function () {
         });
     }
 
-    return activeTimeout;
+    return {
+        set: timeout,
+        count: count,
+        pulse: pulse
+    };
 })();

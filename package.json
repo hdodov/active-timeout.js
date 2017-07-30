@@ -1,7 +1,7 @@
 {
   "name": "active-timeout.js",
-  "version": "1.0.0",
-  "description": "JavaScript timeout that counts only while the user is viewing the page.",
+  "version": "2.0.0",
+  "description": "JavaScript library that lets you measure time the user has spent viewing your page. Inactive time will not be counted.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,10 +13,14 @@
   "keywords": [
     "javascript",
     "active",
+    "accurate",
+    "measure",
     "timeout",
+    "interval",
+    "analytics"
+    "visibility",
     "settimeout",
     "setinterval",
-    "visibility",
     "wait",
     "delay",
     "viewing",

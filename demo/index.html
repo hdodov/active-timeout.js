@@ -1,24 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>active-timeout.js</title>
+    <title>Measure time the user has spent viewing your page &middot; active-timeout.js</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
 </head>
 <body>
-    <div>
-        <p>Active wait remaining</p>
-        <p id="time"></p>
+    <div id="github">
+        <h1>This library lets you measure time the user has spent <strong>viewing</strong> your page. If he focuses another tab or minimizes the browser, that inactive time will <strong>not</strong> be counted.</h1>
+
+        <a class="github-button" href="https://github.com/hdodov/active-timeout.js/fork" data-icon="octicon-repo-forked" data-size="large" aria-label="Fork hdodov/active-timeout.js on GitHub">Fork</a>
+        <a class="github-button" href="https://github.com/hdodov/active-timeout.js" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star hdodov/active-timeout.js on GitHub">Star</a>
     </div>
 
-    <script type="text/javascript" src="active-timeout.js"></script>
+    <div>
+        <p>You've been active:</p>
+        <p id="counter" class="timer"></p>
+    </div>
+
+    <div>
+        <p>Here's a timeout:</p>
+        <p id="timeout" class="timer"></p>
+    </div>
+
+    <script type="text/javascript" src="active-timeout.min.js"></script>
     <script type="text/javascript">
-        var timer = document.getElementById("time");
-        
-        activeTimeout(function () {
-            timer.innerHTML = "NONE.";
+        var timeout = document.getElementById("timeout"),
+            counter = document.getElementById("counter");
+
+        ActiveTimeout.count(function (time) {
+            counter.innerHTML = time + "ms";
+            return true;
+        });
+
+        ActiveTimeout.set(function () {
+            timeout.innerHTML = "TIMED OUT!";
         }, function (remainder, tick) {
-            timer.innerHTML = remainder;
-        }, 2000);
+            timeout.innerHTML = remainder + "ms";
+        }, 10000);
     </script>
 </body>
 </html>
